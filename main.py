@@ -1,15 +1,14 @@
-import os
 import io
 from PIL import Image
 import torch
 import base64
-import uvicorn
 from io import BytesIO
 
-from flask import Flask, request
+from fastapi import FastAPI, HTTPException
+
 from transformers import ViTForImageClassification, ViTImageProcessor
 
-app = Flask(__name__)
+app = FastAPI()
 
 device_idx = 0
 device = torch.device("cuda:{}".format(device_idx) if torch.cuda.is_available() else "cpu")
@@ -30,14 +29,12 @@ def predict(image_file):
     print(f"Max GPU memory allocated: {torch.cuda.max_memory_allocated(device) / 1024 / 1024:.2f} MB")
     return predicted_class
 
-# Define the Flask app route
-@app.route("/predict", methods=["POST"])
-async def make_prediction():
-    image_data = request.get_json()['image']
-    decoded_image = base64.b64decode(image_data)
-    predicted_class = predict(decoded_image)
-    return predicted_class
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=7860)
-
+# Define the FastAPI app route
+@app.post("/predict")
+async def make_prediction(image_data: str):
+    try:
+        decoded_image = base64.b64decode(image_data)
+        predicted_class = predict(decoded_image)
+        return predicted_class
+    except:
+        raise HTTPException(status_code=400, detail="Invalid image data")
