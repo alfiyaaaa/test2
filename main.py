@@ -3,10 +3,10 @@ import io
 from PIL import Image
 import torch
 import base64
+import uvicorn
 from io import BytesIO
 
 from flask import Flask, request
-
 from transformers import ViTForImageClassification, ViTImageProcessor
 
 app = Flask(__name__)
@@ -32,14 +32,12 @@ def predict(image_file):
 
 # Define the Flask app route
 @app.route("/predict", methods=["POST"])
-def make_prediction():
-    #if "image" not in request.files:
-     #   return "No image file provided", 400
+async def make_prediction():
     image_data = request.get_json()['image']
-    #image_data = request.files["image"]
     decoded_image = base64.b64decode(image_data)
     predicted_class = predict(decoded_image)
     return predicted_class
 
-#if __name__ == "__main__":
- #   app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=7860)
+
