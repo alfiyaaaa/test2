@@ -1,0 +1,5 @@
+torch
+Pillow
+transformers
+Flask
+uvicorn
